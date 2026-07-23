@@ -12,7 +12,7 @@ import 'package:chatwoot_sdk/data/remote/responses/chatwoot_event.dart';
 import 'package:chatwoot_sdk/data/remote/service/chatwoot_client_api_interceptor.dart';
 import 'package:chatwoot_sdk/di/modules.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hive_flutter/hive_flutter.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:riverpod/riverpod.dart';
 
 void main() {

@@ -52,10 +52,7 @@ String generateScripts(
   return script;
 }
 
-const _androidOptions = AndroidOptions(
-  encryptedSharedPreferences: true,
-);
-final secureStorage = new FlutterSecureStorage(aOptions: _androidOptions);
+final secureStorage = new FlutterSecureStorage();
 const cookieKey = 'cwCookie';
 
 class StoreHelper {

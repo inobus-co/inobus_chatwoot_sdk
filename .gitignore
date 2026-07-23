@@ -70,6 +70,7 @@ build/
 **/ios/Flutter/flutter_export_environment.sh
 **/ios/ServiceDefinitions.json
 **/ios/Runner/GeneratedPluginRegistrant.*
+**/ios/Flutter/ephemeral/
 
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
@@ -77,3 +78,14 @@ build/
 !**/ios/**/default.pbxuser
 !**/ios/**/default.perspectivev3
 /coverage/
+
+# FVM Version Cache
+.fvm/
+
+.fvmrc
+.flutter-plugins-dependencies
+.vscode/
+
+pubspec.lock
+example/pubspec.lock
+makefile
