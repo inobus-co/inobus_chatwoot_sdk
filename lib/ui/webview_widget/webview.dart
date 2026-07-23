@@ -86,6 +86,16 @@ class _WebviewState extends State<Webview> {
               },
               onWebResourceError: (WebResourceError error) {},
               onNavigationRequest: (NavigationRequest request) {
+                // iOS calls this for every navigation including the initial
+                // widget load, so only external links open in the browser
+                if (!request.isMainFrame) {
+                  return NavigationDecision.navigate;
+                }
+                final requestHost = Uri.tryParse(request.url)?.host;
+                final widgetHost = Uri.parse(widget.widgetUrl).host;
+                if (requestHost == widgetHost) {
+                  return NavigationDecision.navigate;
+                }
                 _goToUrl(request.url);
                 return NavigationDecision.prevent;
               },
