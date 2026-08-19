@@ -37,6 +37,7 @@ dependencies:
   synchronized: ^3.0.0
   equatable: ^2.0.3
   url_launcher: ^6.1.10
+  uuid: ^4.6.0
 
 dev_dependencies:
   flutter_test:

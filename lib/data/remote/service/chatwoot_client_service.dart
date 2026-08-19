@@ -48,9 +48,25 @@ class ChatwootClientServiceImpl extends ChatwootClientService {
   Future<ChatwootMessage> createMessage(
       ChatwootNewMessageRequest request) async {
     try {
-      final createResponse = await _dio.post(
-          "/public/api/v1/inboxes/${ChatwootClientApiInterceptor.INTERCEPTOR_INBOX_IDENTIFIER_PLACEHOLDER}/contacts/${ChatwootClientApiInterceptor.INTERCEPTOR_CONTACT_IDENTIFIER_PLACEHOLDER}/conversations/${ChatwootClientApiInterceptor.INTERCEPTOR_CONVERSATION_IDENTIFIER_PLACEHOLDER}/messages",
-          data: request.toJson());
+      final path =
+          "/public/api/v1/inboxes/${ChatwootClientApiInterceptor.INTERCEPTOR_INBOX_IDENTIFIER_PLACEHOLDER}/contacts/${ChatwootClientApiInterceptor.INTERCEPTOR_CONTACT_IDENTIFIER_PLACEHOLDER}/conversations/${ChatwootClientApiInterceptor.INTERCEPTOR_CONVERSATION_IDENTIFIER_PLACEHOLDER}/messages";
+
+      // When the message carries attachments it must be sent as
+      // multipart/form-data with each file under the `attachments[]` field.
+      // Plain text messages keep using a JSON body.
+      final data = request.hasAttachments
+          ? FormData.fromMap({
+              "content": request.content,
+              "echo_id": request.echoId,
+              "attachments[]": [
+                for (final filePath in request.attachmentPaths)
+                  await MultipartFile.fromFile(filePath,
+                      filename: filePath.split("/").last)
+              ],
+            })
+          : request.toJson();
+
+      final createResponse = await _dio.post(path, data: data);
       if ((createResponse.statusCode ?? 0).isBetween(199, 300)) {
         return ChatwootMessage.fromJson(createResponse.data);
       } else {
