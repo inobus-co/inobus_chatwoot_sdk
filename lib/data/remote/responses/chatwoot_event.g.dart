@@ -9,7 +9,7 @@ part of 'chatwoot_event.dart';
 class ChatwootEventMessageUserAdapter
     extends TypeAdapter<ChatwootEventMessageUser> {
   @override
-  final typeId = 4;
+  final typeId = 104;
 
   @override
   ChatwootEventMessageUser read(BinaryReader reader) {

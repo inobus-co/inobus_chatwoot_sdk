@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 
 class ChatwootParameters extends Equatable {
@@ -6,13 +7,15 @@ class ChatwootParameters extends Equatable {
   final String clientInstanceKey;
   final String inboxIdentifier;
   final String? userIdentifier;
+  final List<Interceptor> dioInterceptors;
 
   ChatwootParameters(
       {required this.isPersistenceEnabled,
       required this.baseUrl,
       required this.inboxIdentifier,
       required this.clientInstanceKey,
-      this.userIdentifier});
+      this.userIdentifier,
+      this.dioInterceptors = const []});
 
   @override
   List<Object?> get props => [

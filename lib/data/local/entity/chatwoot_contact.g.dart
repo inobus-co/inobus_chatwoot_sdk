@@ -8,7 +8,7 @@ part of 'chatwoot_contact.dart';
 
 class ChatwootContactAdapter extends TypeAdapter<ChatwootContact> {
   @override
-  final typeId = 0;
+  final typeId = 100;
 
   @override
   ChatwootContact read(BinaryReader reader) {
@@ -21,7 +21,7 @@ class ChatwootContactAdapter extends TypeAdapter<ChatwootContact> {
       contactIdentifier: fields[1] as String?,
       pubsubToken: fields[2] as String?,
       name: fields[3] as String,
-      email: fields[4] as String,
+      email: fields[4] as String?,
     );
   }
 
@@ -62,7 +62,7 @@ ChatwootContact _$ChatwootContactFromJson(Map<String, dynamic> json) =>
       contactIdentifier: json['source_id'] as String?,
       pubsubToken: json['pubsub_token'] as String?,
       name: json['name'] as String,
-      email: json['email'] as String,
+      email: json['email'] as String?,
     );
 
 Map<String, dynamic> _$ChatwootContactToJson(ChatwootContact instance) =>

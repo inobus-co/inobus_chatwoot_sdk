@@ -6,6 +6,7 @@ import 'package:chatwoot_sdk/data/remote/requests/chatwoot_action_data.dart';
 import 'package:chatwoot_sdk/data/remote/requests/chatwoot_new_message_request.dart';
 import 'package:chatwoot_sdk/di/modules.dart';
 import 'package:chatwoot_sdk/chatwoot_parameters.dart';
+import 'package:dio/dio.dart';
 import 'package:chatwoot_sdk/repository_parameters.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -114,15 +115,26 @@ class ChatwootClient {
   /// Creates an instance of [ChatwootClient] with the [baseUrl] of your chatwoot installation,
   /// [inboxIdentifier] for the targeted inbox. Specify custom user details using [user] and [callbacks] for
   /// handling chatwoot events. By default persistence is enabled, to disable persistence set [enablePersistence] as false
+  ///Registers chatwoot's hive adapters using a typeId range starting from [typeIdBase].
+  ///Call this from the host app (e.g. `main()`) when the app also uses hive, so the
+  ///chatwoot adapters don't clash with the app's own typeIds. Safe to call multiple times.
+  static void registerHiveAdapters({
+    int typeIdBase = kDefaultChatwootHiveTypeIdBase,
+  }) {
+    LocalStorage.registerHiveAdapters(typeIdBase: typeIdBase);
+  }
+
   static Future<ChatwootClient> create({
     required String baseUrl,
     required String inboxIdentifier,
     ChatwootUser? user,
     bool enablePersistence = true,
     ChatwootCallbacks? callbacks,
+    List<Interceptor> dioInterceptors = const [],
+    int hiveTypeIdBase = kDefaultChatwootHiveTypeIdBase,
   }) async {
     if (enablePersistence) {
-      await LocalStorage.openDB();
+      await LocalStorage.openDB(typeIdBase: hiveTypeIdBase);
     }
 
     final chatwootParams = ChatwootParameters(
@@ -135,6 +147,7 @@ class ChatwootClient {
       baseUrl: baseUrl,
       inboxIdentifier: inboxIdentifier,
       userIdentifier: user?.identifier,
+      dioInterceptors: dioInterceptors,
     );
 
     final client = ChatwootClient._(

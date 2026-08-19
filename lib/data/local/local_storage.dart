@@ -10,11 +10,29 @@ import 'entity/chatwoot_contact.dart';
 import 'entity/chatwoot_message.dart';
 import 'entity/chatwoot_user.dart';
 
-const CHATWOOT_CONTACT_HIVE_TYPE_ID = 0;
-const CHATWOOT_CONVERSATION_HIVE_TYPE_ID = 1;
-const CHATWOOT_MESSAGE_HIVE_TYPE_ID = 2;
-const CHATWOOT_USER_HIVE_TYPE_ID = 3;
-const CHATWOOT_EVENT_USER_HIVE_TYPE_ID = 4;
+const CHATWOOT_CONTACT_HIVE_TYPE_ID = 100;
+const CHATWOOT_CONVERSATION_HIVE_TYPE_ID = 101;
+const CHATWOOT_MESSAGE_HIVE_TYPE_ID = 102;
+const CHATWOOT_USER_HIVE_TYPE_ID = 103;
+const CHATWOOT_EVENT_USER_HIVE_TYPE_ID = 104;
+
+const kDefaultChatwootHiveTypeIdBase = 100;
+
+///Wraps a generated [TypeAdapter] so its [typeId] can be assigned at runtime,
+///allowing the host app to choose a typeId range that doesn't clash with its own.
+class _BasedTypeAdapter<T> extends TypeAdapter<T> {
+  _BasedTypeAdapter(this.typeId, this._delegate);
+
+  @override
+  final int typeId;
+  final TypeAdapter<T> _delegate;
+
+  @override
+  T read(BinaryReader reader) => _delegate.read(reader);
+
+  @override
+  void write(BinaryWriter writer, T obj) => _delegate.write(writer, obj);
+}
 
 class LocalStorage {
   ChatwootUserDao userDao;
@@ -29,24 +47,43 @@ class LocalStorage {
     required this.messagesDao,
   });
 
-  static Future<void> openDB({void Function()? onInitializeHive}) async {
+  static int? _registeredTypeIdBase;
+
+  ///Registers all chatwoot hive adapters starting from [typeIdBase]
+  ///(contact, conversation, message, user and event user take [typeIdBase]..[typeIdBase] + 4).
+  ///
+  ///Can be called from the host app (e.g. in `main()`) before [ChatwootClient.create]
+  ///to pick a typeId range that doesn't clash with the app's own adapters.
+  ///Safe to call multiple times; only the first call registers.
+  static void registerHiveAdapters({
+    int typeIdBase = kDefaultChatwootHiveTypeIdBase,
+  }) {
+    if (_registeredTypeIdBase != null) return;
+
+    void register<T>(int typeId, TypeAdapter<T> delegate) {
+      if (!Hive.isAdapterRegistered(typeId)) {
+        Hive.registerAdapter(_BasedTypeAdapter<T>(typeId, delegate));
+      }
+    }
+
+    register<ChatwootContact>(typeIdBase + 0, ChatwootContactAdapter());
+    register<ChatwootConversation>(
+        typeIdBase + 1, ChatwootConversationAdapter());
+    register<ChatwootMessage>(typeIdBase + 2, ChatwootMessageAdapter());
+    register<ChatwootUser>(typeIdBase + 3, ChatwootUserAdapter());
+    register<ChatwootEventMessageUser>(
+        typeIdBase + 4, ChatwootEventMessageUserAdapter());
+
+    _registeredTypeIdBase = typeIdBase;
+  }
+
+  static Future<void> openDB({
+    int typeIdBase = kDefaultChatwootHiveTypeIdBase,
+    void Function()? onInitializeHive,
+  }) async {
     if (onInitializeHive == null) {
       await Hive.initFlutter();
-      if (!Hive.isAdapterRegistered(CHATWOOT_CONTACT_HIVE_TYPE_ID)) {
-        Hive..registerAdapter(ChatwootContactAdapter());
-      }
-      if (!Hive.isAdapterRegistered(CHATWOOT_CONVERSATION_HIVE_TYPE_ID)) {
-        Hive..registerAdapter(ChatwootConversationAdapter());
-      }
-      if (!Hive.isAdapterRegistered(CHATWOOT_MESSAGE_HIVE_TYPE_ID)) {
-        Hive..registerAdapter(ChatwootMessageAdapter());
-      }
-      if (!Hive.isAdapterRegistered(CHATWOOT_EVENT_USER_HIVE_TYPE_ID)) {
-        Hive..registerAdapter(ChatwootEventMessageUserAdapter());
-      }
-      if (!Hive.isAdapterRegistered(CHATWOOT_USER_HIVE_TYPE_ID)) {
-        Hive..registerAdapter(ChatwootUserAdapter());
-      }
+      registerHiveAdapters(typeIdBase: typeIdBase);
     } else {
       onInitializeHive();
     }

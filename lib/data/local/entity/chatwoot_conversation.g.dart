@@ -8,7 +8,7 @@ part of 'chatwoot_conversation.dart';
 
 class ChatwootConversationAdapter extends TypeAdapter<ChatwootConversation> {
   @override
-  final typeId = 1;
+  final typeId = 101;
 
   @override
   ChatwootConversation read(BinaryReader reader) {
