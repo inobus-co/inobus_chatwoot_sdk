@@ -1,6 +1,6 @@
-import 'package:chatwoot_sdk/chatwoot_callbacks.dart';
-import 'package:chatwoot_sdk/chatwoot_parameters.dart';
-import 'package:chatwoot_sdk/di/modules.dart';
+import 'package:inobus_chatwoot_sdk/chatwoot_callbacks.dart';
+import 'package:inobus_chatwoot_sdk/chatwoot_parameters.dart';
+import 'package:inobus_chatwoot_sdk/di/modules.dart';
 
 /// Represent all needed parameters necessary for [chatwootRepositoryProvider] to successfully provide an instance
 /// of [ChatwootRepository].

@@ -1,4 +1,4 @@
-import 'package:chatwoot_sdk/data/remote/responses/chatwoot_event.dart';
+import 'package:inobus_chatwoot_sdk/data/remote/responses/chatwoot_event.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:json_annotation/json_annotation.dart';

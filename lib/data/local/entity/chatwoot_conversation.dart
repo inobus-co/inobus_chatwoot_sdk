@@ -1,6 +1,6 @@
-import 'package:chatwoot_sdk/chatwoot_sdk.dart';
-import 'package:chatwoot_sdk/data/local/entity/chatwoot_contact.dart';
-import 'package:chatwoot_sdk/data/local/local_storage.dart';
+import 'package:inobus_chatwoot_sdk/inobus_chatwoot_sdk.dart';
+import 'package:inobus_chatwoot_sdk/data/local/entity/chatwoot_contact.dart';
+import 'package:inobus_chatwoot_sdk/data/local/local_storage.dart';
 import 'package:equatable/equatable.dart';
 import 'package:hive_ce/hive.dart';
 import 'package:json_annotation/json_annotation.dart';

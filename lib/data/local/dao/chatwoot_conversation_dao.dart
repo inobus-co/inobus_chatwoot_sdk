@@ -1,4 +1,4 @@
-import 'package:chatwoot_sdk/data/local/entity/chatwoot_conversation.dart';
+import 'package:inobus_chatwoot_sdk/data/local/entity/chatwoot_conversation.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
 abstract class ChatwootConversationDao {

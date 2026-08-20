@@ -1,5 +1,5 @@
-import 'package:chatwoot_sdk/data/local/dao/chatwoot_user_dao.dart';
-import 'package:chatwoot_sdk/data/local/entity/chatwoot_user.dart';
+import 'package:inobus_chatwoot_sdk/data/local/dao/chatwoot_user_dao.dart';
+import 'package:inobus_chatwoot_sdk/data/local/entity/chatwoot_user.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

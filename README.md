@@ -1,5 +1,3 @@
-[![Pub Version](https://img.shields.io/pub/v/chatwoot_client_sdk?color=blueviolet)](https://pub.dev/packages/chatwoot_sdk)
-
 # Integrate Chatwoot with Flutter app
 
 Integrate Chatwoot flutter client into your flutter app and talk to your visitors in real time. [Chatwoot](https://github.com/chatwoot/chatwoot) helps you to chat with your visitors and provide exceptional support in real time. To use Chatwoot in your flutter app, follow the steps described below.
@@ -8,15 +6,19 @@ Integrate Chatwoot flutter client into your flutter app and talk to your visitor
 
 ## 1. Add the package to your project
 
-Run the command below in your terminal
+This package is not published to pub.dev. Add it as a git dependency in your
+project's [pubspec.yaml](https://flutter.dev/docs/development/tools/pubspec):
 
-`flutter pub add chatwoot_sdk`
+```yaml
+dependencies:
+  inobus_chatwoot_sdk:
+    git:
+      url: https://github.com/inobus-co/inobus_chatwoot_sdk.git
+      ref: v1.0.0
+```
 
-or
-
-Add
-`chatwoot_sdk:<<version>>`
-to your project's [pubspec.yml](https://flutter.dev/docs/development/tools/pubspec) file. You can check [here](https://pub.dev/packages/chatwoot_sdk) for the latest version.
+Then run `flutter pub get`. Pin `ref` to a released tag (or a branch/commit) to
+control the version you depend on.
 
 ## 2. How to use
 
@@ -28,7 +30,7 @@ to your project's [pubspec.yml](https://flutter.dev/docs/development/tools/pubsp
 ```dart
 import 'dart:io';
 
-import 'package:chatwoot_sdk/chatwoot_sdk.dart';
+import 'package:inobus_chatwoot_sdk/inobus_chatwoot_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as image;
@@ -54,7 +56,7 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+  MyHomePage({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
@@ -82,7 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
           name: "Tester test",
           email: "test@test.com",
         ),
-        locale: "fr",
+        locale: "en",
         closeWidget: () {
           if (Platform.isAndroid) {
             SystemNavigator.pop();
@@ -116,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     final imageData = await photo.readAsBytes();
     final decodedImage = image.decodeImage(imageData);
-    final scaledImage = image.copyResize(decodedImage, width: 500);
+    final scaledImage = image.copyResize(decodedImage!, width: 500);
     final jpg = image.encodeJpg(scaledImage, quality: 90);
 
     final filePath = (await getTemporaryDirectory()).uri.resolve(
@@ -153,7 +155,7 @@ Horray! You're done.
 * Create your own customized chat ui and use `ChatwootClient` to load and sendMessages. Messaging events like `onMessageSent` and `onMessageReceived` will be triggered on `ChatwootCallback` argument passed when creating the client instance.
 
 
-NB: This chatwoot client uses [Hive](https://pub.dev/packages/hive) for local storage.
+NB: This chatwoot client uses [hive_ce](https://pub.dev/packages/hive_ce) for local storage.
 
 ```dart
 final chatwootCallbacks = ChatwootCallbacks(

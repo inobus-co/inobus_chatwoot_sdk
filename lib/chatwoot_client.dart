@@ -1,13 +1,13 @@
-import 'package:chatwoot_sdk/chatwoot_sdk.dart';
-import 'package:chatwoot_sdk/data/chatwoot_repository.dart';
-import 'package:chatwoot_sdk/data/local/entity/chatwoot_contact.dart';
-import 'package:chatwoot_sdk/data/local/entity/chatwoot_conversation.dart';
-import 'package:chatwoot_sdk/data/remote/requests/chatwoot_action_data.dart';
-import 'package:chatwoot_sdk/data/remote/requests/chatwoot_new_message_request.dart';
-import 'package:chatwoot_sdk/di/modules.dart';
-import 'package:chatwoot_sdk/chatwoot_parameters.dart';
+import 'package:inobus_chatwoot_sdk/inobus_chatwoot_sdk.dart';
+import 'package:inobus_chatwoot_sdk/data/chatwoot_repository.dart';
+import 'package:inobus_chatwoot_sdk/data/local/entity/chatwoot_contact.dart';
+import 'package:inobus_chatwoot_sdk/data/local/entity/chatwoot_conversation.dart';
+import 'package:inobus_chatwoot_sdk/data/remote/requests/chatwoot_action_data.dart';
+import 'package:inobus_chatwoot_sdk/data/remote/requests/chatwoot_new_message_request.dart';
+import 'package:inobus_chatwoot_sdk/di/modules.dart';
+import 'package:inobus_chatwoot_sdk/chatwoot_parameters.dart';
 import 'package:dio/dio.dart';
-import 'package:chatwoot_sdk/repository_parameters.dart';
+import 'package:inobus_chatwoot_sdk/repository_parameters.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:uuid/uuid.dart';
 

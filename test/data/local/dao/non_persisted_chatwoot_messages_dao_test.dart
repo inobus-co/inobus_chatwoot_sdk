@@ -1,5 +1,5 @@
-import 'package:chatwoot_sdk/data/local/dao/chatwoot_messages_dao.dart';
-import 'package:chatwoot_sdk/data/local/entity/chatwoot_message.dart';
+import 'package:inobus_chatwoot_sdk/data/local/dao/chatwoot_messages_dao.dart';
+import 'package:inobus_chatwoot_sdk/data/local/entity/chatwoot_message.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../../utils/test_resources_util.dart';

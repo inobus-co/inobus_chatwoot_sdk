@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:chatwoot_sdk/chatwoot_sdk.dart';
+import 'package:inobus_chatwoot_sdk/inobus_chatwoot_sdk.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image/image.dart' as image;
