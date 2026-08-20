@@ -186,6 +186,9 @@ class ChatwootClientServiceImpl extends ChatwootClientService {
   void startWebSocketConnection(String contactPubsubToken,
       {WebSocketChannel Function(Uri)? onStartConnection}) {
     final socketUrl = Uri.parse(_baseUrl.replaceFirst("http", "ws") + "/cable");
+    //Close the previous channel, otherwise it stays open and keeps streaming
+    //events even though nothing references it anymore.
+    connection?.sink.close();
     this.connection = onStartConnection == null
         ? WebSocketChannel.connect(socketUrl)
         : onStartConnection(socketUrl);

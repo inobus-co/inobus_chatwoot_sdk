@@ -135,8 +135,19 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
     if (token == null) {
       return;
     }
-    clientService.startWebSocketConnection(
-        localStorage.contactDao.getContact()!.pubsubToken ?? "");
+
+    //Tear down any previous connection before opening a new one. Without this
+    //every call leaves an orphaned socket behind that keeps delivering events,
+    //so callbacks fire once per stale connection.
+    for (final subscription in _subscriptions) {
+      subscription.cancel();
+    }
+    _subscriptions.clear();
+    _publishPresenceTimer?.cancel();
+    _presenceResetTimer?.cancel();
+    _isListeningForEvents = false;
+
+    clientService.startWebSocketConnection(token);
 
     final newSubscription = clientService.connection!.stream.listen((event) {
       ChatwootEvent chatwootEvent = ChatwootEvent.fromJson(jsonDecode(event));
@@ -232,6 +243,7 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
   ///Publishes presence update to websocket channel at a 30 second interval
   void _publishPresenceUpdates() {
     sendAction(ChatwootActionType.update_presence);
+    _publishPresenceTimer?.cancel();
     _publishPresenceTimer = Timer.periodic(Duration(seconds: 30), (timer) {
       sendAction(ChatwootActionType.update_presence);
     });
