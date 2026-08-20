@@ -88,6 +88,7 @@ ChatwootEventMessageData _$ChatwootEventMessageDataFromJson(
   Map<String, dynamic> json,
 ) => ChatwootEventMessageData(
   id: (json['id'] as num?)?.toInt(),
+  attachments: json['attachments'] as List<dynamic>?,
   user: json['user'] == null
       ? null
       : ChatwootEventMessageUser.fromJson(json['user'] as Map<String, dynamic>),
@@ -119,6 +120,7 @@ Map<String, dynamic> _$ChatwootEventMessageDataToJson(
   ChatwootEventMessageData instance,
 ) => <String, dynamic>{
   'account_id': instance.accountId,
+  'attachments': instance.attachments,
   'content': instance.content,
   'content_attributes': instance.contentAttributes,
   'content_type': instance.contentType,

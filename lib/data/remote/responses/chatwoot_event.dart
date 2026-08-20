@@ -58,6 +58,10 @@ class ChatwootEventMessageData {
   @JsonKey(name: "account_id")
   final int? accountId;
 
+  ///list of media/doc/file attachment for message
+  @JsonKey()
+  final List<dynamic>? attachments;
+
   @JsonKey()
   final String? content;
 
@@ -117,6 +121,7 @@ class ChatwootEventMessageData {
 
   ChatwootEventMessageData(
       {this.id,
+      this.attachments,
       this.user,
       this.conversation,
       this.echoId,
