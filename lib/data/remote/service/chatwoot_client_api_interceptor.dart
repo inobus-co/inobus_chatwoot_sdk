@@ -186,9 +186,12 @@ class ChatwootClientApiInterceptor extends Interceptor {
     return rebuilt;
   }
 
-  ///Resolves the inbox/contact/conversation segments in [path]. Matching by shape
-  ///(`/contacts/…`, `/conversations/…`) handles both the placeholder form used on
-  ///a fresh request and an already-resolved path being retried with new ids.
+  ///Resolves the inbox/contact/conversation segments in [path].
+  ///
+  ///First the `{…}` placeholders are substituted (fresh request from the
+  ///service). Then, for an already-resolved path being retried after a contact
+  ///reset, the `/contacts/…` and `/conversations/…` segments are rewritten by
+  ///shape so a stale identifier is swapped for the freshly created one.
   String _resolvePath(
     String path,
     ChatwootContact contact,
@@ -196,6 +199,14 @@ class ChatwootClientApiInterceptor extends Interceptor {
   ) {
     return path
         .replaceAll(INTERCEPTOR_INBOX_IDENTIFIER_PLACEHOLDER, _inboxIdentifier)
+        .replaceAll(
+          INTERCEPTOR_CONTACT_IDENTIFIER_PLACEHOLDER,
+          contact.contactIdentifier!,
+        )
+        .replaceAll(
+          INTERCEPTOR_CONVERSATION_IDENTIFIER_PLACEHOLDER,
+          "${conversation.id}",
+        )
         .replaceAll(
           RegExp(r'/contacts/[^/]+'),
           "/contacts/${contact.contactIdentifier}",
