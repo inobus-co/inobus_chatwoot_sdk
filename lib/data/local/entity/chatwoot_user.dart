@@ -7,7 +7,7 @@ import '../local_storage.dart';
 part 'chatwoot_user.g.dart';
 
 ///
-@JsonSerializable(explicitToJson: true)
+@JsonSerializable(explicitToJson: true, includeIfNull: false)
 @HiveType(typeId: CHATWOOT_USER_HIVE_TYPE_ID)
 class ChatwootUser extends Equatable {
   ///custom chatwoot user identifier
