@@ -1,3 +1,8 @@
+## [1.0.2] - Aug 25,2026
+
+### Fixed
+- Omit null-valued keys (`email`, `avatar_url`, `custom_attributes`) from the contact-registration payload so they are no longer sent as explicit `null`s, which can interfere with HMAC identity validation.
+
 ## [1.0.1] - Aug 25,2026
 
 ### Added

@@ -70,10 +70,10 @@ ChatwootUser _$ChatwootUserFromJson(Map<String, dynamic> json) => ChatwootUser(
 
 Map<String, dynamic> _$ChatwootUserToJson(ChatwootUser instance) =>
     <String, dynamic>{
-      'identifier': instance.identifier,
-      'identifier_hash': instance.identifierHash,
-      'name': instance.name,
-      'email': instance.email,
-      'avatar_url': instance.avatarUrl,
-      'custom_attributes': instance.customAttributes,
+      'identifier': ?instance.identifier,
+      'identifier_hash': ?instance.identifierHash,
+      'name': ?instance.name,
+      'email': ?instance.email,
+      'avatar_url': ?instance.avatarUrl,
+      'custom_attributes': ?instance.customAttributes,
     };

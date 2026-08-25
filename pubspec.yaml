@@ -1,6 +1,6 @@
 name: inobus_chatwoot_sdk
 description: A flutter client sdk for chatwoot. Integrate Chatwoot flutter client into your flutter app and talk to your visitors/users in real time.
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/inobus-co/inobus_chatwoot_sdk
 
 environment:
