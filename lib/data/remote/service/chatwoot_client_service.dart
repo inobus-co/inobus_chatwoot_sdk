@@ -66,7 +66,16 @@ class ChatwootClientServiceImpl extends ChatwootClientService {
             })
           : request.toJson();
 
-      final createResponse = await _dio.post(path, data: data);
+      // Stash the attachment paths so the interceptor can rebuild the (consumed)
+      // multipart body and resend it if the request needs a contact reset retry.
+      final options = request.hasAttachments
+          ? Options(extra: {
+              ChatwootClientApiInterceptor.attachmentPathsKey:
+                  request.attachmentPaths,
+            })
+          : null;
+
+      final createResponse = await _dio.post(path, data: data, options: options);
       if ((createResponse.statusCode ?? 0).isBetween(199, 300)) {
         return ChatwootMessage.fromJson(createResponse.data);
       } else {

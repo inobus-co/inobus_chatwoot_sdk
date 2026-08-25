@@ -1,3 +1,12 @@
+## [1.0.1] - Aug 25,2026
+
+### Added
+- Automatically reconnect the websocket with exponential backoff (capped at 30s) when the connection drops (network change, server close, idle timeout).
+
+### Fixed
+- Recover from a server-side deleted contact: on a 401/403/404 from the public API the client now wipes the stale contact/conversation/messages, re-registers a fresh contact and transparently retries the failed request. Consumed multipart bodies are rebuilt from the original attachment paths so image/file sends retry too. Previously this recovery lived in an unreachable `onResponse` path.
+- Re-subscribe the websocket to the new contact's channel after a contact reset changes the pubsub token.
+
 ## [1.0.0] - Jul 27,2026
 
 ### Breaking

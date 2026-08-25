@@ -30,6 +30,7 @@ class _HasPath extends Matcher {
 @GenerateMocks([
   ResponseInterceptorHandler,
   RequestInterceptorHandler,
+  ErrorInterceptorHandler,
   ChatwootClientAuthService
 ])
 void main() {
@@ -42,8 +43,9 @@ void main() {
     final mockUserDao = MockChatwootUserDao();
     final mockDio = MockDio();
     final mockConversationDao = MockChatwootConversationDao();
-    final mockResponseHandler = MockResponseInterceptorHandler();
+    final mockMessagesDao = MockChatwootMessagesDao();
     final mockRequestHandler = MockRequestInterceptorHandler();
+    final mockErrorHandler = MockErrorInterceptorHandler();
 
     late final testContact;
 
@@ -62,6 +64,7 @@ void main() {
       when(mockLocalStorage.userDao).thenReturn(mockUserDao);
       when(mockAuthService.dio).thenReturn(mockDio);
       when(mockLocalStorage.conversationDao).thenReturn(mockConversationDao);
+      when(mockLocalStorage.messagesDao).thenReturn(mockMessagesDao);
       testContact = ChatwootContact.fromJson(
           await TestResourceUtil.readJsonResource(fileName: "contact"));
       testConversation = ChatwootConversation.fromJson(
@@ -81,13 +84,6 @@ void main() {
       return Response(
           data: body,
           statusCode: 200,
-          requestOptions: RequestOptions(path: "", headers: new Map()));
-    }
-
-    _createErrorResponse({required int statusCode, body}) {
-      return Response(
-          data: body,
-          statusCode: statusCode,
           requestOptions: RequestOptions(path: "", headers: new Map()));
     }
 
@@ -195,60 +191,79 @@ void main() {
           .next(argThat(_HasPath("/${testConversation.id}"))));
     });
 
+    _createPublicApiError(int statusCode) {
+      final requestOptions = RequestOptions(
+          path:
+              "/public/api/v1/inboxes/$testInboxIdentifier/contacts/oldContact/conversations/1/messages");
+      return DioException(
+          requestOptions: requestOptions,
+          response: Response(
+              statusCode: statusCode, requestOptions: requestOptions));
+    }
+
     test(
-        'Given api response is 401 unauthorized when a response is returned, then recreate contact and resubmit request',
+        'Given a 401 unauthorized error on the public api, then re-register contact and resubmit the failed request',
         () async {
       //GIVEN
-      final testResponse = _createErrorResponse(statusCode: 401);
+      final testError = _createPublicApiError(401);
 
-      when(mockLocalStorage.contactDao).thenReturn(mockContactDao);
       when(mockContactDao.getContact()).thenReturn(testContact);
-      when(mockDio.fetch(any))
-          .thenAnswer((_) => Future.value(_createSuccessResponse({})));
+      when(mockConversationDao.getConversation()).thenReturn(null);
+      when(mockContactDao.deleteContact()).thenAnswer((_) async {});
+      when(mockConversationDao.deleteConversation()).thenAnswer((_) async {});
+      when(mockMessagesDao.clear()).thenAnswer((_) async {});
+      when(mockContactDao.saveContact(any)).thenAnswer((_) async {});
+      when(mockConversationDao.saveConversation(any)).thenAnswer((_) async {});
       when(mockUserDao.getUser()).thenReturn(testUser);
       when(mockAuthService.createNewContact(any, any))
           .thenAnswer((_) => Future.value(testContact));
       when(mockAuthService.createNewConversation(any, any))
           .thenAnswer((_) => Future.value(testConversation));
+      when(mockDio.fetch(any))
+          .thenAnswer((_) => Future.value(_createSuccessResponse({})));
 
       //WHEN
-      await interceptor.onResponse(testResponse, mockResponseHandler);
+      await interceptor.onError(testError, mockErrorHandler);
 
       //THEN
       verify(mockContactDao.saveContact(testContact));
       verify(mockConversationDao.saveConversation(testConversation));
-      verify(mockResponseHandler.next(any));
+      verify(mockDio.fetch(any));
+      verify(mockErrorHandler.resolve(any));
     });
 
     test(
-        'Given api response is not 401 unauthorized when a response is returned, then forward response through handler',
+        'Given a non-recoverable error, then forward the error without re-registering a contact',
         () async {
       //GIVEN
-      final testResponse = _createErrorResponse(statusCode: 400);
+      final testError = _createPublicApiError(500);
 
       //WHEN
-      await interceptor.onResponse(testResponse, mockResponseHandler);
+      await interceptor.onError(testError, mockErrorHandler);
 
       //THEN
-      verify(mockResponseHandler.next(any));
-      verifyNever(mockAuthService.createNewConversation(any, any));
+      verify(mockErrorHandler.next(any));
+      verifyNever(mockAuthService.createNewContact(any, any));
       verifyNever(mockContactDao.saveContact(any));
       verifyNever(mockConversationDao.saveConversation(any));
     });
 
     test(
-        'Given api response is successful when a response is returned, then forward response through handler',
+        'Given a recoverable error on a non-public-api path, then forward the error without re-registering a contact',
         () async {
       //GIVEN
-      final testResponse = _createSuccessResponse({});
+      final requestOptions = RequestOptions(path: "/some/other/path");
+      final testError = DioException(
+          requestOptions: requestOptions,
+          response:
+              Response(statusCode: 404, requestOptions: requestOptions));
 
       //WHEN
-      await interceptor.onResponse(testResponse, mockResponseHandler);
+      await interceptor.onError(testError, mockErrorHandler);
 
       //THEN
-      verify(mockResponseHandler.next(any));
+      verify(mockErrorHandler.next(any));
       verifyNever(mockAuthService.createNewContact(any, any));
-      verifyNever(mockAuthService.createNewConversation(any, any));
       verifyNever(mockContactDao.saveContact(any));
       verifyNever(mockConversationDao.saveConversation(any));
     });

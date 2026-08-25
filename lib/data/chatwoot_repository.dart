@@ -51,6 +51,17 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
   Timer? _publishPresenceTimer;
   Timer? _presenceResetTimer;
 
+  ///The pubsub token the live websocket is currently subscribed with. Used to
+  ///detect when the contact has been re-registered (new token) so we can
+  ///re-subscribe the socket to the new contact's channel.
+  String? _subscribedPubsubToken;
+
+  ///Websocket auto-reconnect state.
+  Timer? _reconnectTimer;
+  int _reconnectAttempts = 0;
+  bool _isDisposed = false;
+  static const _maxReconnectDelay = Duration(seconds: 30);
+
   ChatwootRepositoryImpl(
       {required ChatwootClientService clientService,
       required LocalStorage localStorage,
@@ -67,9 +78,23 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
       final messages = await clientService.getAllMessages();
       await localStorage.messagesDao.saveAllMessages(messages);
       callbacks.onMessagesRetrieved?.call(messages);
+      // A 404 recovery may have re-registered the contact with a new pubsub
+      // token while this request was in flight; make sure the socket follows it.
+      _resubscribeIfContactChanged();
     } on ChatwootClientException catch (e) {
       callbacks.onError?.call(e);
     }
+  }
+
+  ///Re-subscribes the websocket when the persisted contact's pubsub token no
+  ///longer matches the one the live socket is using (e.g. after the contact was
+  ///re-registered following a 401/403/404 reset).
+  void _resubscribeIfContactChanged() {
+    final token = localStorage.contactDao.getContact()?.pubsubToken;
+    if (token == null || token == _subscribedPubsubToken) {
+      return;
+    }
+    listenForEvents();
   }
 
   /// Fetches persisted messages.
@@ -119,6 +144,9 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
       callbacks.onMessageSent?.call(createdMessage, request.echoId);
       if (clientService.connection != null && !_isListeningForEvents) {
         listenForEvents();
+      } else {
+        // Sending may have triggered a 404 contact reset; follow the new token.
+        _resubscribeIfContactChanged();
       }
     } on ChatwootClientException catch (e) {
       callbacks.onError?.call(
@@ -139,6 +167,7 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
     //Tear down any previous connection before opening a new one. Without this
     //every call leaves an orphaned socket behind that keeps delivering events,
     //so callbacks fire once per stale connection.
+    _reconnectTimer?.cancel();
     for (final subscription in _subscriptions) {
       subscription.cancel();
     }
@@ -147,6 +176,7 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
     _presenceResetTimer?.cancel();
     _isListeningForEvents = false;
 
+    _subscribedPubsubToken = token;
     clientService.startWebSocketConnection(token);
 
     final newSubscription = clientService.connection!.stream.listen((event) {
@@ -156,6 +186,8 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
       } else if (chatwootEvent.type == ChatwootEventType.ping) {
         callbacks.onPing?.call();
       } else if (chatwootEvent.type == ChatwootEventType.confirm_subscription) {
+        // A confirmed subscription means the socket is healthy: reset backoff.
+        _reconnectAttempts = 0;
         if (!_isListeningForEvents) {
           _isListeningForEvents = true;
         }
@@ -211,8 +243,35 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
       } else {
         print("chatwoot unknown event: $event");
       }
-    });
+    },
+        // The socket dropped (network change, server close, idle timeout, …).
+        // dart's WebSocketChannel surfaces this as an error and/or done; either
+        // way schedule a reconnect with backoff.
+        onError: (_) => _scheduleReconnect(),
+        onDone: _scheduleReconnect,
+        cancelOnError: true);
     _subscriptions.add(newSubscription);
+  }
+
+  ///Schedules a websocket reconnect using exponential backoff (capped at
+  ///[_maxReconnectDelay]). Backoff is reset once a subscription is confirmed.
+  void _scheduleReconnect() {
+    if (_isDisposed) return;
+
+    _isListeningForEvents = false;
+    _publishPresenceTimer?.cancel();
+    _reconnectTimer?.cancel();
+
+    final seconds = 1 << (_reconnectAttempts.clamp(0, 5)); // 1,2,4,8,16,32→cap
+    final delay = seconds > _maxReconnectDelay.inSeconds
+        ? _maxReconnectDelay
+        : Duration(seconds: seconds);
+    _reconnectAttempts++;
+
+    _reconnectTimer = Timer(delay, () {
+      if (_isDisposed) return;
+      listenForEvents();
+    });
   }
 
   /// Clears all data related to current chatwoot client instance
@@ -224,6 +283,8 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
   /// Cancels websocket stream subscriptions and disposes [localStorage]
   @override
   void dispose() {
+    _isDisposed = true;
+    _reconnectTimer?.cancel();
     localStorage.dispose();
     callbacks = ChatwootCallbacks();
     _presenceResetTimer?.cancel();
