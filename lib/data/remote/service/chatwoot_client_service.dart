@@ -201,6 +201,9 @@ class ChatwootClientServiceImpl extends ChatwootClientService {
     this.connection = onStartConnection == null
         ? WebSocketChannel.connect(socketUrl)
         : onStartConnection(socketUrl);
+    //Connection failures are also delivered to the stream, which schedules the
+    //reconnect. Leaving `ready` unhandled would surface them as uncaught errors.
+    connection!.ready.ignore();
     connection!.sink.add(jsonEncode({
       "command": "subscribe",
       "identifier": jsonEncode(

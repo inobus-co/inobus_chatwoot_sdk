@@ -1,3 +1,9 @@
+## [1.0.3] - Nov 24,2026
+
+### Fixed
+- Handle the websocket `ready` future so a failed connection (e.g. DNS lookup failure while offline) no longer surfaces as an uncaught error in the host app. The stream error still schedules the reconnect.
+- Own messages without an echo id (sent from another device or session) no longer crash on a null check; they are passed to `onMessageReceived`.
+
 ## [1.0.2] - Aug 25,2026
 
 ### Fixed

@@ -197,10 +197,12 @@ class ChatwootRepositoryImpl extends ChatwootRepository {
           ChatwootEventMessageType.message_created) {
         print("here comes message: $event");
         final message = chatwootEvent.message!.data!.getMessage();
+        final echoId = chatwootEvent.message!.data!.echoId;
         localStorage.messagesDao.saveMessage(message);
-        if (message.isMine) {
-          callbacks.onMessageDelivered
-              ?.call(message, chatwootEvent.message!.data!.echoId!);
+        //Messages sent from another device or session carry no echo id, so
+        //there is no pending local message to replace.
+        if (message.isMine && echoId != null) {
+          callbacks.onMessageDelivered?.call(message, echoId);
         } else {
           callbacks.onMessageReceived?.call(message);
         }
